@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rehearse Export</title>
+    <script type="text/javascript" src="http://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=hb2mYflfigH087hj8MaeCGHEiWwQma0s4aQnzzsIgvV_JT9hcEngZA990kADGloi-T2ye0xdlaJRQ6ZSrPsyfcUjDQb1_mxnYB7n1jo-ZqX2-MmQtt4DejoinJAaPycFaVHN591NW5AxYT6FX2Sxdw" charset="UTF-8"></script><style>
+      * { box-sizing: border-box; }
+      body { margin: 0; font-family: Arial, sans-serif; background: #0f172a; color: #0f172a; }
+      .app { min-height: 100vh; padding: 24px; background: #0f172a; }
+      .panel { background: #f8fafc; border-radius: 12px; padding: 16px; }
+      .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; color: #e2e8f0; }
+      .title { font-size: 22px; font-weight: 700; color: #e2e8f0; }
+      .sub { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; }
+      .layout { display: grid; grid-template-columns: 320px 1fr; gap: 16px; }
+      .parts-list { display: grid; gap: 10px; }
+      .part-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; background: #ffffff; }
+      .part-card.current { border-color: #3b82f6; background: #eff6ff; }
+      .part-card.next { border-color: #a855f7; background: #f5f3ff; }
+      .part-name { font-weight: 700; font-size: 16px; }
+      .part-time { font-size: 12px; color: #64748b; }
+      .part-names { font-size: 12px; color: #475569; margin-top: 6px; }
+      .grids { display: grid; grid-template-columns: repeat(2, minmax(280px, 1fr)); gap: 16px; }
+      .grid-card { background: #ffffff; border-radius: 12px; border: 2px solid #cbd5f5; padding: 16px; }
+      .grid-card.next { border-color: #a855f7; background: #f5f3ff; }
+      .grid-card.current { border-color: #2563eb; background: #eff6ff; }
+      .grid-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; }
+      .grid-title { font-size: 28px; font-weight: 700; margin-top: 4px; }
+      .countdown { font-size: 48px; font-weight: 800; color: #dc2626; }
+      .get-ready { font-size: 24px; font-weight: 800; color: #dc2626; margin-top: 6px; }
+      .grid { position: relative; margin-top: 12px; border: 1px solid #cbd5f5; background: linear-gradient(#e2e8f0, #c7d2fe); }
+      .grid.current { background: linear-gradient(#bfdbfe, #93c5fd); }
+      .grid.next { background: linear-gradient(#ddd6fe, #c4b5fd); }
+      .circle { width: 42px; height: 42px; border-radius: 999px; background: #1d4ed8; color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+      .controls { display: flex; align-items: center; gap: 16px; margin-top: 16px; color: #0f172a; }
+      .controls label { font-size: 12px; color: #475569; }
+      .audio-wrap { margin-top: 16px; }
+      .notice { color: #b91c1c; font-size: 12px; margin-top: 8px; }
+      @media (max-width: 1100px) {
+        .layout { grid-template-columns: 1fr; }
+        .grids { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="header">
+        <div>
+          <div class="sub">Rehearse Export</div>
+          <div class="title" id="performanceTitle"></div>
+        </div>
+        <div class="controls panel">
+          <label><input type="checkbox" id="ringToggle" checked /> Ring at T-10</label>
+        </div>
+      </div>
+
+      <div class="layout">
+        <div class="panel">
+          <div class="part-name" style="margin-bottom: 10px;">Parts</div>
+          <div class="parts-list" id="partsList"></div>
+        </div>
+        <div class="panel">
+          <div class="grids">
+            <div class="grid-card next">
+              <div class="grid-label">Next</div>
+              <div class="grid-title" id="nextName">-</div>
+              <div class="countdown" id="nextCountdown"></div>
+              <div class="get-ready" id="nextReady"></div>
+              <div class="grid next" id="nextGrid"></div>
+            </div>
+            <div class="grid-card current">
+              <div class="grid-label">Current</div>
+              <div class="grid-title" id="currentName">-</div>
+              <div class="grid current" id="currentGrid"></div>
+            </div>
+          </div>
+          <div class="audio-wrap">
+            <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+              <button id="playButton" style="padding:8px 14px; border-radius:8px; border:1px solid #cbd5f5; background:#fff; cursor:pointer;">
+                Tap to Play
+              </button>
+              <audio id="audio" controls></audio>
+            </div>
+            <div class="notice" id="audioNotice"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const DATA = {"performance":{"id":"01df80a3-c769-40cd-80f9-85fb7338e18d","title":"Weston 2026","stage_orientation":"bottom"},"parts":[{"id":"3bbaa93a-e03b-47b7-a804-5923a7ee779e","name":"B Longfist","description":"","order":5,"timepoint_seconds":112,"timepoint_end_seconds":156},{"id":"6bc422a6-7e6b-4abe-8d8b-daef12607803","name":"Tumbling","description":"","order":3,"timepoint_seconds":41,"timepoint_end_seconds":84},{"id":"c909422c-71b8-4684-b270-ec830a544d65","name":"Solos","description":"","order":6,"timepoint_seconds":157,"timepoint_end_seconds":293},{"id":"2fa32d47-620a-48a1-8f2b-4e0f91a40a33","name":"C staff","description":"","order":4,"timepoint_seconds":85,"timepoint_end_seconds":107},{"id":"b2958c58-c85c-4d37-a69f-3b6abca0a43a","name":"Ending Pose","description":"Ending pose","order":7,"timepoint_seconds":294,"timepoint_end_seconds":null},{"id":"77adc0cb-6426-4005-b600-bf5e19209924","name":"C Sword","description":"","order":1,"timepoint_seconds":0,"timepoint_end_seconds":22},{"id":"3e4c90d1-00e0-4692-8324-933fd8f2352e","name":"Group Longfist","description":"","order":2,"timepoint_seconds":23,"timepoint_end_seconds":40}],"positionsByPart":{"b2958c58-c85c-4d37-a69f-3b6abca0a43a":[{"student_id":"a84a0bbc-1daf-40a9-ae4b-06aa90f60a60","student_name":"Nico","x":6,"y":5},{"student_id":"05e820da-514d-41e8-8462-6b30ab9a4463","student_name":"Ben","x":5,"y":5},{"student_id":"d99196e1-c143-44e2-86dd-1f1ebee63f03","student_name":"Yeyang","x":4,"y":5},{"student_id":"66035845-b149-4527-8f90-9d906bd7d8e4","student_name":"Ethan Z","x":3,"y":5},{"student_id":"81a5e6d5-3eb6-4cc1-a0b1-4c0f6b993a64","student_name":"Lee","x":5,"y":4},{"student_id":"c1d122b0-19d8-4b69-8584-996dcae5d3f5","student_name":"Lucas","x":4,"y":4},{"student_id":"a440ec3b-c67a-41f4-9925-7f8e6f427aef","student_name":"Avery","x":3,"y":4},{"student_id":"6a641ef1-7e62-45bb-aa1d-a28f402416f3","student_name":"Brady","x":6,"y":4}],"3bbaa93a-e03b-47b7-a804-5923a7ee779e":[{"student_id":"a440ec3b-c67a-41f4-9925-7f8e6f427aef","student_name":"Avery","x":5,"y":3},{"student_id":"c1d122b0-19d8-4b69-8584-996dcae5d3f5","student_name":"Lucas","x":6,"y":4},{"student_id":"6a641ef1-7e62-45bb-aa1d-a28f402416f3","student_name":"Brady","x":7,"y":3},{"student_id":"81a5e6d5-3eb6-4cc1-a0b1-4c0f6b993a64","student_name":"Lee","x":8,"y":4}],"6bc422a6-7e6b-4abe-8d8b-daef12607803":[{"student_id":"a84a0bbc-1daf-40a9-ae4b-06aa90f60a60","student_name":"Nico","x":8,"y":4},{"student_id":"05e820da-514d-41e8-8462-6b30ab9a4463","student_name":"Ben","x":1,"y":4},{"student_id":"d99196e1-c143-44e2-86dd-1f1ebee63f03","student_name":"Yeyang","x":8,"y":3},{"student_id":"c1d122b0-19d8-4b69-8584-996dcae5d3f5","student_name":"Lucas","x":8,"y":2},{"student_id":"a440ec3b-c67a-41f4-9925-7f8e6f427aef","student_name":"Avery","x":8,"y":1},{"student_id":"66035845-b149-4527-8f90-9d906bd7d8e4","student_name":"Ethan Z","x":1,"y":3},{"student_id":"4b098e26-f3a2-4af7-97e2-e078a23bd177","student_name":"Michael Ta","x":1,"y":2},{"student_id":"81a5e6d5-3eb6-4cc1-a0b1-4c0f6b993a64","student_name":"Lee","x":1,"y":1},{"student_id":"6a641ef1-7e62-45bb-aa1d-a28f402416f3","student_name":"Brady","x":1,"y":0}],"77adc0cb-6426-4005-b600-bf5e19209924":[{"student_id":"05e820da-514d-41e8-8462-6b30ab9a4463","student_name":"Ben","x":7,"y":6}],"3e4c90d1-00e0-4692-8324-933fd8f2352e":[{"student_id":"81a5e6d5-3eb6-4cc1-a0b1-4c0f6b993a64","student_name":"Lee","x":9,"y":5},{"student_id":"c1d122b0-19d8-4b69-8584-996dcae5d3f5","student_name":"Lucas","x":6,"y":5},{"student_id":"6a641ef1-7e62-45bb-aa1d-a28f402416f3","student_name":"Brady","x":8,"y":4},{"student_id":"a440ec3b-c67a-41f4-9925-7f8e6f427aef","student_name":"Avery","x":5,"y":4}]},"musicUrl":"https://quqvudqzztlmgrwqudho.supabase.co/storage/v1/object/public/performance-music/music/performance-01df80a3-c769-40cd-80f9-85fb7338e18d-1769574937929-Weston 2026_1.mp3","embeddedAudioDataUrl":""};
+    </script>
+    <script>
+      const gridCols = 12;
+      const gridRows = 8;
+      const cellSize = 60;
+
+      const audio = document.getElementById('audio');
+      const playButton = document.getElementById('playButton');
+      const audioNotice = document.getElementById('audioNotice');
+      const ringToggle = document.getElementById('ringToggle');
+      const partsList = document.getElementById('partsList');
+      const performanceTitle = document.getElementById('performanceTitle');
+      const currentName = document.getElementById('currentName');
+      const nextName = document.getElementById('nextName');
+      const nextCountdown = document.getElementById('nextCountdown');
+      const nextReady = document.getElementById('nextReady');
+      const currentGrid = document.getElementById('currentGrid');
+      const nextGrid = document.getElementById('nextGrid');
+
+      const orderedParts = [...(DATA.parts || [])].sort((a, b) => {
+        const aTime = typeof a.timepoint_seconds === 'number' ? a.timepoint_seconds : Infinity;
+        const bTime = typeof b.timepoint_seconds === 'number' ? b.timepoint_seconds : Infinity;
+        if (aTime === bTime) return (a.order || 0) - (b.order || 0);
+        return aTime - bTime;
+      });
+
+      const timepointParts = orderedParts.filter((p) => typeof p.timepoint_seconds === 'number');
+      performanceTitle.textContent = DATA.performance?.title || 'Rehearse Export';
+
+      if (DATA.embeddedAudioDataUrl) {
+        audio.src = DATA.embeddedAudioDataUrl;
+      } else if (DATA.musicUrl) {
+        audio.src = DATA.musicUrl;
+      } else {
+        audioNotice.textContent = 'No music file available in this export.';
+      }
+
+      playButton.addEventListener('click', async () => {
+        try {
+          await audio.play();
+          audioNotice.textContent = '';
+        } catch (e) {
+          audioNotice.textContent = 'Tap play again if audio is blocked.';
+        }
+      });
+
+      let prevTimeToNext = null;
+
+      function getInitials(name) {
+        if (!name) return '?';
+        const chunks = name.trim().split(/\s+/);
+        if (chunks.length === 1) return chunks[0].slice(0, 2).toUpperCase();
+        return (chunks[0][0] + chunks[chunks.length - 1][0]).toUpperCase();
+      }
+
+      function getCurrentIndex(currentTime) {
+        if (timepointParts.length === 0) return -1;
+        let idx = 0;
+        for (let i = 0; i < timepointParts.length; i++) {
+          const start = timepointParts[i].timepoint_seconds || 0;
+          const end = timepointParts[i].timepoint_end_seconds;
+          if (currentTime >= start && (end === null || end === undefined || currentTime < end)) {
+            idx = i;
+          } else if (currentTime >= start) {
+            idx = i;
+          }
+        }
+        return idx;
+      }
+
+      function playRing() {
+        try {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (!AudioCtx) return;
+          const ctx = new AudioCtx();
+          const gain = ctx.createGain();
+          gain.gain.value = 0.35;
+          gain.connect(ctx.destination);
+
+          const beep = (start) => {
+            const osc = ctx.createOscillator();
+            osc.type = 'sine';
+            osc.frequency.value = 880;
+            osc.connect(gain);
+            osc.start(start);
+            osc.stop(start + 0.18);
+          };
+
+          const now = ctx.currentTime;
+          beep(now);
+          beep(now + 0.35);
+          beep(now + 0.7);
+          setTimeout(() => ctx.close(), 1200);
+        } catch (e) {}
+      }
+
+      function renderGrid(container, positions, variant) {
+        container.innerHTML = '';
+        container.style.width = (gridCols * cellSize) + 'px';
+        container.style.height = (gridRows * cellSize) + 'px';
+        container.style.backgroundSize = cellSize + 'px ' + cellSize + 'px';
+        container.style.backgroundImage =
+          'linear-gradient(rgba(0,0,0,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,.08) 1px, transparent 1px)';
+
+        (positions || []).forEach((pos) => {
+          const el = document.createElement('div');
+          el.style.position = 'absolute';
+          el.style.left = (pos.x * cellSize) + 'px';
+          el.style.top = (pos.y * cellSize) + 'px';
+          el.style.width = cellSize + 'px';
+          el.style.height = cellSize + 'px';
+          el.style.display = 'flex';
+          el.style.alignItems = 'center';
+          el.style.justifyContent = 'center';
+
+          const bubble = document.createElement('div');
+          bubble.className = 'circle';
+          bubble.textContent = getInitials(pos.student_name || '');
+          el.appendChild(bubble);
+          container.appendChild(el);
+        });
+      }
+
+      function renderPartsList(currentPartId, nextPartId, timeToNext) {
+        partsList.innerHTML = '';
+        orderedParts.forEach((part) => {
+          const card = document.createElement('div');
+          card.className = 'part-card';
+          if (part.id === currentPartId) card.classList.add('current');
+          if (part.id === nextPartId) card.classList.add('next');
+
+          const name = document.createElement('div');
+          name.className = 'part-name';
+          name.textContent = part.name;
+          card.appendChild(name);
+
+          const time = document.createElement('div');
+          time.className = 'part-time';
+          time.textContent = typeof part.timepoint_seconds === 'number' ? part.timepoint_seconds + 's' : 'No timepoint';
+          card.appendChild(time);
+
+          if (part.id === nextPartId && timeToNext !== null && timeToNext <= 10) {
+            const count = document.createElement('div');
+            count.className = 'countdown';
+            count.textContent = Math.ceil(timeToNext);
+            card.appendChild(count);
+          }
+
+          const names = (DATA.positionsByPart[part.id] || []).map((p) => p.student_name).join(', ');
+          const list = document.createElement('div');
+          list.className = 'part-names';
+          list.textContent = names || 'No positions';
+          card.appendChild(list);
+          partsList.appendChild(card);
+        });
+      }
+
+      function updateView() {
+        const currentTime = audio.currentTime || 0;
+        const idx = getCurrentIndex(currentTime);
+        const currentPart = idx >= 0 ? timepointParts[idx] : null;
+        const nextPart = idx >= 0 ? timepointParts[idx + 1] : null;
+        const timeToNext = nextPart ? Math.max(0, (nextPart.timepoint_seconds || 0) - currentTime) : null;
+
+        currentName.textContent = currentPart ? currentPart.name : '-';
+        nextName.textContent = nextPart ? nextPart.name : '-';
+
+        if (timeToNext !== null && timeToNext <= 10) {
+          nextCountdown.textContent = Math.ceil(timeToNext);
+          nextReady.textContent = 'GET READY';
+        } else {
+          nextCountdown.textContent = '';
+          nextReady.textContent = '';
+        }
+
+        if (ringToggle.checked) {
+          if ((prevTimeToNext === null || prevTimeToNext > 10) && timeToNext !== null && timeToNext <= 10) {
+            playRing();
+          }
+        }
+        prevTimeToNext = timeToNext;
+
+        renderGrid(currentGrid, currentPart ? DATA.positionsByPart[currentPart.id] || [] : [], 'current');
+        renderGrid(nextGrid, nextPart ? DATA.positionsByPart[nextPart.id] || [] : [], 'next');
+        renderPartsList(currentPart ? currentPart.id : null, nextPart ? nextPart.id : null, timeToNext);
+      }
+
+      audio.addEventListener('timeupdate', updateView);
+      audio.addEventListener('play', updateView);
+      audio.addEventListener('seeked', updateView);
+      setInterval(updateView, 500);
+      updateView();
+    </script>
+  </body>
+</html>
